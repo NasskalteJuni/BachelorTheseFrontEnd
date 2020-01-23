@@ -1,15 +1,72 @@
 <template>
     <v-form>
-
+        <v-container>
+            <v-row>
+                <v-text-field label="Suche einen Raum" v-model="search" filled :append-icon="search ? 'mdi-close' : 'mdi-magnify'" @click:append="search ? search = '' : $refs.searchbar.focus()" ref="searchbar"></v-text-field>
+            </v-row>
+            <v-row class="scrollable">
+                <v-container class="ma-0 pa-0" v-for="(room, index) in rooms" :key="room.id">
+                    <v-row>
+                        <v-col :cols="11">
+                            <router-link :to="'/room/'+room.id">
+                                {{room.name}}
+                            </router-link>
+                        </v-col>
+                        <v-col>
+                            <v-btn fab dark color="accent" @click="$router.push('/room/'+room.id)">
+                                <v-icon>mdi-login-variant</v-icon>
+                            </v-btn>
+                        </v-col>
+                    </v-row>
+                    <v-divider v-if="index !== rooms.length-1"></v-divider>
+                </v-container>
+            </v-row>
+        </v-container>
+        <v-container>
+            Keinen Raum gefunden?
+            <router-link to="/create">
+                Erstelle deinen eigenen Konferenz-Raum
+            </router-link>
+        </v-container>
     </v-form>
 </template>
 
 <script>
     export default {
-        name: "ConferenceRoomList"
+        name: "ConferenceRoomList",
+        data(){
+            return {
+                search: ''
+            }
+        },
+        computed: {
+            rooms(){
+                const lowercaseSearch = this.search.toLowerCase();
+                return (this.search && this.search.length > 0) ? this.$store.state.rooms.filter(room => room.name.toLowerCase().indexOf(lowercaseSearch) >= 0) : this.$store.state.rooms;
+            }
+        },
+        created(){
+            this.$store.dispatch('getRooms');
+        }
     }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 
+    .scrollable{
+        height: 55vh;
+        min-height: 55vh;
+        overflow-x: hidden;
+        overflow-y: scroll;
+    }
+
+    .scrollable::-webkit-scrollbar{
+        background-color: rgba(20,20,20,0.1);
+        width: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--v-accent-base);
+        border-radius: 2px;
+    }
 </style>
