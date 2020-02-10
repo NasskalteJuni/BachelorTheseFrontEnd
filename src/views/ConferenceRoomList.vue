@@ -7,12 +7,12 @@
             <v-row class="scrollable">
                 <v-container class="ma-0 pa-0" v-for="(room, index) in rooms" :key="room.id">
                     <v-row>
-                        <v-col :cols="11">
+                        <v-col>
                             <router-link :to="'/room/'+room.id">
                                 {{room.name}}
                             </router-link>
                         </v-col>
-                        <v-col>
+                        <v-col cols="auto" class="pr-8">
                             <v-btn fab dark color="accent" @click="$router.push('/room/'+room.id)">
                                 <v-icon>mdi-login-variant</v-icon>
                             </v-btn>
@@ -42,11 +42,12 @@
         computed: {
             rooms(){
                 const lowercaseSearch = this.search.toLowerCase();
-                return (this.search && this.search.length > 0) ? this.$store.state.rooms.filter(room => room.name.toLowerCase().indexOf(lowercaseSearch) >= 0) : this.$store.state.rooms;
+                const all = this.$store.state.rooms;
+                return (this.search && this.search.length > 0) ? all.filter(room => room.name.toLowerCase().indexOf(lowercaseSearch) >= 0) : all;
             }
         },
         created(){
-            this.$store.dispatch('getRooms');
+            this.$store.dispatch('updateRooms')
         }
     }
 </script>

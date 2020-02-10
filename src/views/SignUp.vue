@@ -18,12 +18,12 @@
                     </v-col>
                 </v-row>
                 <v-row>
-                    <v-col>
+                    <v-col cols="auto">
                         <v-btn color="accent" :disabled="!valid" @click="register()">Registrieren</v-btn>
                     </v-col>
-                </v-row>
-                <v-row v-if="error">
-                    <v-alert>{{error}}</v-alert>
+                    <v-col v-if="error">
+                        <v-alert type="error" dark dense outlined>{{error}}</v-alert>
+                    </v-col>
                 </v-row>
                 <v-row>
                     <v-col class="text--secondary">
@@ -63,12 +63,14 @@
         },
         methods: {
             register(){
-                try{
                     this.error = '';
-                    this.$store.dispatch('register', {name: this.username, password: this.password});
-                }catch(err){
-                    this.error = err.message || 'Konto konnte nicht registriert werden'
-                }
+                    this.$store.dispatch('register', {name: this.username, password: this.password})
+                        .then(() => this.$router.push('/'))
+                        .catch(err => {
+                            if(err.message && err.message.endsWith('422')) this.error = 'Nutzername bereits vergeben';
+                            else this.error = 'Registrierung Fehlgeschlagen';
+                        });
+
             }
         }
     }

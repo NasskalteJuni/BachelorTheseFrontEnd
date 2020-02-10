@@ -7,10 +7,10 @@
                 </v-list-item>
                 <v-divider></v-divider>
                 <v-list-item two-line>
-                    weitere Nutzer von {{$store.state.currentRoom}}
+                    <h2>Nutzer von {{$store.state.room.name}}</h2>
                 </v-list-item>
                 <v-list-item v-for="member in members" :key="member">
-                    {{member}}
+                    {{member === $store.state.user.name ? (member+' (du)') : member}}
                 </v-list-item>
                 <v-list-item v-if="members.length === 0">
                     (Du bist alleine)
@@ -54,7 +54,11 @@
                 stream: null,
                 video: true,
                 audio: true,
-                members: [],
+            }
+        },
+        computed: {
+            members(){
+                return this.$store.state.room.members || [];
             }
         },
         methods: {
@@ -85,12 +89,19 @@
                 this.$store.dispatch('leave');
             }
         },
-        mounted(){
-            if(window.innerWidth >= 600 && document.getElementById("members").classList.contains('v-navigation-drawer--open')){
-                document.getElementById("conference").classList.add('drawer-offset');
-            }
-            window.addEventListener('beforeunload', () => this.$store.dispatch('leave'));
+        created(){
             if(this.$store.state.joining.id || this.$store.state.joining.password) this.$store.commit('setJoining', {});
+            this.$store.dispatch('forceUpdate');
+        },
+        mounted(){
+            const handleDrawerOffset = () => {
+                if(window.innerWidth >= 600 && document.getElementById("members").classList.contains('v-navigation-drawer--open')){
+                    document.getElementById("conference").classList.add('drawer-offset');
+                }
+            };
+            handleDrawerOffset();
+            window.addEventListener('resize', handleDrawerOffset);
+            window.addEventListener('beforeunload', () => this.$store.dispatch('leave'));
         }
     }
 </script>

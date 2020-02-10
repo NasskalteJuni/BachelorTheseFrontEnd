@@ -6,9 +6,11 @@ import vuetify from './plugins/vuetify'
 
 Vue.config.productionTip = false;
 
+Vue.prototype.$webrtc = window.MediaUtilities;
+
 new Vue({
-  router,
   store,
+  router,
   vuetify,
   render: h => h(App)
 }).$mount('#app');

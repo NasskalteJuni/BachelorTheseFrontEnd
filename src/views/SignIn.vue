@@ -8,18 +8,18 @@
             </v-row>
             <v-row>
                 <v-col>
-                    <v-text-field filled label="Password" required v-model="password" :type="showPassword ? 'text' : 'password'" :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" @click:append="showPassword = !showPassword" ref="password" @keyup.enter="valid ? login() : () => $refs.username.focus()"></v-text-field>
+                    <v-text-field filled label="Password" required v-model="password" :type="showPassword ? 'text' : 'password'" :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'" @click:append="showPassword = !showPassword" ref="password" @keyup.enter="login()"></v-text-field>
                 </v-col>
             </v-row>
             <v-row>
-                <v-col>
-                    <v-btn color="accent" :disabled="!valid">Anmelden</v-btn>
+                <v-col cols="auto">
+                    <v-btn color="accent" :disabled="!valid" @click="login()">Anmelden</v-btn>
                 </v-col>
-            </v-row>
-            <v-row v-if="error">
-                <v-alert>
-                    {{error}}
-                </v-alert>
+                <v-col v-if="error">
+                    <v-alert type="error" dark outlined dense>
+                        {{error}}
+                    </v-alert>
+                </v-col>
             </v-row>
             <v-row>
                 <v-col class="text--secondary">
@@ -35,21 +35,28 @@
         name: "SignIn",
         data(){
             return {
-                valid: this.username && this.password,
+                valid: true,
                 showPassword: false,
                 password: '',
                 username: '',
                 error: '',
+                usernameRules: [
+                    () => !!this.username || 'Nutzername fehlt'
+                ],
+                passwordRules: [
+                    () => !!this.password || 'Passwort fehlt',
+                    () => this.password.length >= 8 || 'Passwort ist zu kurz'
+                ]
             }
         },
         methods: {
-            async login(){
-                try{
-                    this.error = '';
-                    await this.$store.dispatch('login',{username: this.username, password: this.password})
-                }catch(err){
-                    this.error = err.message || 'Anmeldung fehlgeschlagen';
-                }
+            login(){
+                this.$store.dispatch('login',{name: this.username, password: this.password})
+                    .then(() => this.$router.push('/rooms'))
+                    .catch(err => {
+                        if(err.message && err.message.endsWith('403')) this.error = 'Nutzername oder Passwort sind falsch';
+                        else this.error = 'Anmeldung fehlgeschlagen'
+                    });
             }
         }
     }

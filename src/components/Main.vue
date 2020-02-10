@@ -7,6 +7,8 @@
 <script>
 export default {
   name: 'Main',
-  data: () => ({}),
+  data(){
+    return {};
+  },
 };
 </script>

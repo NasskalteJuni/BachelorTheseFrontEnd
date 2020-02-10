@@ -50,28 +50,21 @@ const router = new VueRouter({
   routes
 });
 
-
-router.beforeEach(async(to, from, next) => {
-  const isLoggedIn = store.getters.isLoggedIn;
-  if(to.query.password && to.fullPath.indexOf('room/') >= 0) store.commit('setJoining', {id: to.params.id, password: to.query.password});
-  if (to.name && ['SignIn','SignUp','Contact'].indexOf(to.name) === -1 && !isLoggedIn) {
-    // while not logged in, trying to access other route than the login, contact and register ones
-    return next('/');
-  }else if(to.name && ['SignIn','SignUp'].indexOf(to.name) >= 0 && isLoggedIn) {
-    // while being logged in, trying to get to the login and register routes
-    return next('/rooms');
-  }else if(isLoggedIn && to.name === 'ConferenceRoomList' && store.state.joining.id){
-    return next('/room/'+store.state.joining.id+'?password='+store.state.joining.password);
-  }else if(to.name === 'ConferenceRoom') {
-    try {
-      //await store.dispatch('enter', to.params.id)
-    } catch (err) {
-      return next('/rooms');
-    }
+const isAvailableWhenLoggedOut = route => ['SignIn','SignUp','Contact'].indexOf(route.name) >= 0;
+const isAvailableWhenLoggedIn = route => ['SignIn', 'SignUp'].indexOf(route.name) === -1;
+router.beforeEach(async (to, from, next) => {
+  const isLoggedIn = store.getters['isLoggedIn'];
+  if (!isLoggedIn && !isAvailableWhenLoggedOut(to)) {
+    next({path: '/', replace: true});
+  }else if(isLoggedIn && !isAvailableWhenLoggedIn(to)) {
+    next({path: '/rooms', replace: true});
+  }else if(to.name === 'ConferenceRoom'){
+    console.log('entering room', to.params.id);
+    await store.dispatch('enter', {id: to.params.id, passwort: to.query.password || ''});
+    next();
+  }else{
+    next();
   }
-
-  // go the given given route target
-  next();
 });
 
 export default router

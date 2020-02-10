@@ -26,8 +26,10 @@
     <v-content id="app-content-view">
       <Main/>
     </v-content>
-    <v-footer class="transparent v-footer--fixed bottom-aligned font-weight-thin">
-        <router-link to="/contact" v-if="$route.fullPath !== '/contact'">Impressum</router-link>
+    <v-footer class="transparent v-footer--fixed bottom-aligned font-weight-thin ma-0 pa-1">
+        <small>
+            <router-link to="/contact" v-if="$route.fullPath !== '/contact'">Impressum</router-link>
+        </small>
     </v-footer>
   </v-app>
 </template>
@@ -40,7 +42,9 @@ export default {
   components: {
     Main
   },
-  data: () => ({}),
+  data(){
+      return {}
+  },
   computed: {
     theme(){
       return (this.$vuetify.theme.dark) ? 'dark' : 'light'
@@ -51,6 +55,12 @@ export default {
     font(){
       return 'font: '+(this.$vuetify.theme.themes[this.theme].font || '#000')+';'
     }
+  },
+  mounted(){
+      window.addEventListener('beforeunload', () => {
+          if(this.$store.getters.isLoggedIn) this.$store.dispatch('logout');
+          window.localStorage.removeItem('vuex');
+      })
   }
 };
 </script>
@@ -67,8 +77,7 @@ export default {
   }
 
   #app-content-view{
-      background: url("../public/talking.png");
-      background-repeat: repeat;
+      background: url("../public/talking.png") repeat;
   }
 
   .v-toolbar__content{
@@ -80,5 +89,6 @@ export default {
       position: fixed;
       bottom: 0;
       right: 0;
+      font-size: 0.8em;
   }
 </style>
