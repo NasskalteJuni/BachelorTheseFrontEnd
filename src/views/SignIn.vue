@@ -54,8 +54,9 @@
                 this.$store.dispatch('login',{name: this.username, password: this.password})
                     .then(() => this.$router.push('/rooms'))
                     .catch(err => {
+                        //if(err.message && err.message.indexOf('CSRF')) location.reload();
                         if(err.message && err.message.endsWith('403')) this.error = 'Nutzername oder Passwort sind falsch';
-                        else this.error = 'Anmeldung fehlgeschlagen'
+                        else this.error = 'Anmeldung fehlgeschlagen';
                     });
             }
         }

@@ -5,11 +5,10 @@
       color="primary"
       dark
       class="d-flex align-left">
-        <v-responsive :aspect-ratio="1" :contain="true" :max-height="60" :max-width="60">
-          <v-img src="Icon.png" :max-height="60" :max-width="60"/>
-        </v-responsive>
+
         <v-toolbar-title class="text-uppercase font-weight-regular ml-2 title" id="headline">WebRTC Example Application</v-toolbar-title>
         <v-spacer></v-spacer>
+        <small v-if="$store.state.user && $store.state.user.id && $vuetify.breakpoint.mdAndUp">zum letzten Mal angemeldet gewesen: {{new Date(Date.parse($store.state.user.lastLogin)).toLocaleString() || '-'}}</small>
         <v-btn icon v-if="!$store.getters.isLoggedIn" @click="$router.push('/')">
           <v-icon>mdi-login</v-icon>
         </v-btn>
@@ -56,20 +55,39 @@ export default {
       return 'font: '+(this.$vuetify.theme.themes[this.theme].font || '#000')+';'
     }
   },
-  mounted(){
-      window.addEventListener('beforeunload', () => {
-          if(this.$store.getters.isLoggedIn) this.$store.dispatch('logout');
+  created(){
+      window.addEventListener('beforeunload', async e => {
+          e.preventDefault();
+          if(this.$store.getters.isLoggedIn) await this.$store.dispatch('logout');
+          if(this.$store.state.signaler && !this.$store.state.signaler.closed) this.$store.state.signaler.close();
           window.localStorage.removeItem('vuex');
-      })
+          return false;
+      });
   }
 };
 </script>
 
 <style>
+
+
+  html{
+      overflow: hidden !important;
+  }
+
   html, body{
-    overflow: hidden !important;
+    overflow-x: hidden !important;
     height: 100%;
     min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar{
+      background-color: transparent;
+      width: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+      background: rgba(20,20,20,0.7);
+      border-radius: 2px;
   }
 
   #headline{

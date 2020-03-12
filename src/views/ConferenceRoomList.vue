@@ -1,8 +1,8 @@
 <template>
-    <v-form>
+    <v-form @submit.prevent="">
         <v-container>
             <v-row>
-                <v-text-field label="Suche einen Raum" v-model="search" filled :append-icon="search ? 'mdi-close' : 'mdi-magnify'" @click:append="search ? search = '' : $refs.searchbar.focus()" ref="searchbar"></v-text-field>
+                <v-text-field label="Suche einen Raum" v-model="search" filled :append-icon="search ? 'mdi-close' : 'mdi-magnify'" @click:append="search ? search = '' : $refs.searchbar.focus()" ref="searchbar" autocomplete="off"></v-text-field>
             </v-row>
             <v-row class="scrollable">
                 <v-container class="ma-0 pa-0" v-for="(room, index) in rooms" :key="room.id">
@@ -32,6 +32,8 @@
 </template>
 
 <script>
+    import http from "../plugins/axios.js";
+
     export default {
         name: "ConferenceRoomList",
         data(){
@@ -47,7 +49,23 @@
             }
         },
         created(){
-            this.$store.dispatch('updateRooms')
+            this.$store.dispatch('updateRooms');
+            if(this.$store.state.joining && (this.$store.state.joining.id || this.$store.state.joining.name)){
+                let readyToJoin = Promise.resolve();
+                if(!this.$store.state.joining.id){
+                    readyToJoin = http.get('/rooms?name='+this.$store.state.joining.name+"&password="+this.$store.state.joining.key)
+                        .then(rooms => {
+                            if(rooms.length === 0){
+                                throw new Error();
+                            }else{
+                                this.$store.commit('setJoining', {key: this.$store.state.joining.key, id: rooms[0].id});
+                            }
+                        });
+                }
+                readyToJoin
+                    .then(() => this.$router.push({name: 'ConferenceRoom', params: {id: this.$store.state.joining.id}, query: {key: this.$store.state.joining.key}}))
+                    .catch(() => this.$store.commit('setJoining', null));
+            }
         }
     }
 </script>

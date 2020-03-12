@@ -55,12 +55,18 @@ const isAvailableWhenLoggedIn = route => ['SignIn', 'SignUp'].indexOf(route.name
 router.beforeEach(async (to, from, next) => {
   const isLoggedIn = store.getters['isLoggedIn'];
   if (!isLoggedIn && !isAvailableWhenLoggedOut(to)) {
+    // when not logged in - store away the id or name of the room the user wants to join to join after login
+    if(to.path === '/rooms' && to.query.name) store.commit('setJoining', {name: to.query.name, key: to.query.key});
+    else if(to.name === 'ConferenceRoom') store.commit('setJoining', {id: to.params.id, key: to.query.key});
+    // redirect to login
     next({path: '/', replace: true});
   }else if(isLoggedIn && !isAvailableWhenLoggedIn(to)) {
     next({path: '/rooms', replace: true});
   }else if(to.name === 'ConferenceRoom'){
-    console.log('entering room', to.params.id);
-    await store.dispatch('enter', {id: to.params.id, passwort: to.query.password || ''});
+    await store.dispatch('enter', {id: to.params.id, password: to.query.key || ''});
+    next();
+  }else if(from.name === 'ConferenceRoom'){
+    await store.dispatch('leave');
     next();
   }else{
     next();

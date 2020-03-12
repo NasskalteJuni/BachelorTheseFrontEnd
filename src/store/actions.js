@@ -1,11 +1,15 @@
 import http from "../plugins/axios";
 import router from "../router";
+import handleMessagesInStore from "./socket.js";
 
 export default {
-    async login({commit}, credentials) {
+    async login({state, commit}, credentials) {
         const session = await http.post('./session', credentials);
+        const ice = await http.get('./ice');
         commit('setCurrentUser', session.user);
+        commit('setIceServers', ice);
         commit('openSignaler');
+        handleMessagesInStore(state.signaler, state, commit);
     },
     async logout({commit}){
         await http.delete('./session');
@@ -34,31 +38,23 @@ export default {
             await router.push('/');
         }
     },
-    async enter({state, commit}, {id, password}){
+    async enter({commit}, {id, password}){
         const room = await http.post('./room/'+id+'/user', {password});
-        room.$peers = new window.MediaUtilities.ConnectionManager({name: state.user.name, signaler: state.signaler, verbose: true, logger: console});
-        room.$mediaServer = new window.MediaUtilities.Connection({name: state.user.name, signaler: state.signaler, isYielding: false, verbose: true, logger: console});
-        room.$peers.addEventListener('userconnected', user => {
-            console.log('[1] user connected', user);
-            const i = room.members.indexOf(user);
-            if(i === -1) room.members.push(user);
-        });
-        room.$peers.addEventListener('userdisconnected', user => {
-            console.log('[1] user disconnected', user);
-            const i = room.members.indexOf(user);
-            if(i >= 0) room.members.slice(i, 1);
-        });
         commit('setCurrentRoom', room);
     },
     async leave({state, commit}){
-        await http.post('/room/'+state.room.id+'/leave');
-        commit('setCurrentRoom', null);
-        await router.push('/rooms');
+        try{
+            await http.delete('/room/'+state.room.id+'/user');
+        }catch(err){
+            commit('setRooms', state.rooms.filter(room => room.id !== state.room.id));
+        }finally{
+            commit('setCurrentRoom', null);
+        }
     },
     async createRoom({commit}, room){
         const created = await http.post('./room/', room);
         commit('setCurrentRoom', created);
-        await router.push('/room/'+created.id);
+        await router.push('/room/'+created.id+(room.password ? '?key='+room.password : ''));
     },
     async changePassword({state},{oldPassword, newPassword}){
         await http.put('./user/'+state.user.id+'/password', {oldPassword, newPassword});

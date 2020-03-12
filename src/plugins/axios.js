@@ -10,8 +10,7 @@ const http = axios.create({
 const XSRFHeader = 'X-CSRF-TOKEN';
 http.get('./csrf').then(res => http.defaults.headers.common[XSRFHeader] = res.data);
 http.interceptors.response.use(res => {
-    if(res.headers[XSRFHeader]) http.defaults.headers[XSRFHeader] = res.headers[XSRFHeader];
+    if(res.headers[XSRFHeader] && http.defaults.headers.common[XSRFHeader]) http.defaults.headers.common[XSRFHeader] = res.headers[XSRFHeader];
     return res;
 });
-
 export default http;
