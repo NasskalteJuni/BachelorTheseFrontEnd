@@ -81,6 +81,7 @@
                 video: true,
                 conference: new window.MediaUtilities.Conference({signaler: this.$store.state.signaler, name: this.$store.state.user.name, architecture: this.$store.state.room.architecture, iceServers: this.$store.state.iceServers}),
                 error: '',
+                updates: 0,
                 reports: {
                     mcu: {inbound: {}, outbound: {}},
                     sfu: {inbound: {}, outbound: {}},
@@ -137,15 +138,16 @@
                 }
                 return {width, height};
             },
-            changeArchitecture(){
-                this.conference.switchArchitecture();
-            },
             leave(){
+                if(this.updates) clearInterval(this.updates);
                 if(this.stream) this.stream.getTracks().forEach(track => {
                     track.enabled = false;
                     track.stop();
                 });
+                this.conference.close();
+                this.conference = null;
                 this.$router.push('/rooms');
+
             }
         },
         created(){
@@ -159,7 +161,7 @@
                 }
             };
             handleDrawerOffset();
-            setTimeout( handleDrawerOffset, 100);
+            setTimeout(handleDrawerOffset, 100);
             window.addEventListener('resize', handleDrawerOffset);
             window.addEventListener('beforeunload', () => this.leave());
             this.conference.displayOn('#display');
@@ -179,13 +181,17 @@
             const meshFilter = filter();
             const sfuFilter = filter();
             const mcuFilter = filter();
-            setInterval(async () => {
-                this.reports.mesh = meshFilter(await this.conference._peers.getReport());
-                this.reports.sfu = sfuFilter(await this.conference._sfu.getReport());
-                this.reports.mcu = mcuFilter(await this.conference._mcu.getReport());
+            this.updates = setInterval(async () => {
+                if(this.conference && !this.conference.closed){
+                    this.reports.mesh = meshFilter(await this.conference._peers.getReport());
+                    this.reports.sfu = sfuFilter(await this.conference._sfu.getReport());
+                    this.reports.mcu = mcuFilter(await this.conference._mcu.getReport());
+                }
             },500);
             window.conference = this.conference;
-            window.$store = this.$store;
+        },
+        beforeDestroy(){
+            this.leave();
         }
     }
 </script>

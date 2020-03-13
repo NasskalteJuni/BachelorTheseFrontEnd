@@ -23,7 +23,6 @@ const store = new Vuex.Store(options);
 
 // fetch logic -> change view or state on not authenticated
 http.interceptors.response.use(res => res.data, error => {
-  console.error(error);
   if(error && !error.response){
     error.message = 'Verbindung gescheitert';
     return Promise.reject(error);

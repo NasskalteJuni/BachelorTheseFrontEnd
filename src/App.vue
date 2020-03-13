@@ -8,7 +8,7 @@
 
         <v-toolbar-title class="text-uppercase font-weight-regular ml-2 title" id="headline">WebRTC Example Application</v-toolbar-title>
         <v-spacer></v-spacer>
-        <small v-if="$store.state.user && $store.state.user.id && $vuetify.breakpoint.mdAndUp">zum letzten Mal angemeldet gewesen: {{new Date(Date.parse($store.state.user.lastLogin)).toLocaleString() || '-'}}</small>
+        <small v-if="$store.state.user && $store.state.user.id && $vuetify.breakpoint.mdAndUp">letzes Mal online: {{new Date(Date.parse($store.state.user.lastLogin)).toLocaleDateString() || '-'}}</small>
         <v-btn icon v-if="!$store.getters.isLoggedIn" @click="$router.push('/')">
           <v-icon>mdi-login</v-icon>
         </v-btn>
